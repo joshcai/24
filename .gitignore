@@ -6,9 +6,13 @@ pom.xml.asc
 /classes/
 /target/
 /checkouts/
+/resources/public/js/compiled/
+/resources/.DS_Store
 .lein-deps-sum
 .lein-repl-history
 .lein-plugins/
 .lein-failures
 .nrepl-port
 .cpcache/
+figwheel_server.log
+.rebel_readline_history
