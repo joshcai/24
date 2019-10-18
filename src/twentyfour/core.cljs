@@ -42,11 +42,7 @@
   )
 )
 
-;; HTML manipulation
-(defn- get-int [id] 
-  (js/parseInt (dommy/value (dommy/sel1 id)))
- )
-
+;; Display expressions in human readable form
 (defn- pretty-print [num tup]
   (if ((last tup) :reverse)
     (str \( ((last tup) :display) " " num " " (first tup) \))
@@ -58,6 +54,11 @@
     (first (first (seq perm)))
     (map vector (rest (first (seq perm))) (last (seq perm))))
 )
+
+;; HTML manipulation
+(defn- get-int [id] 
+  (js/parseInt (dommy/value (dommy/sel1 id)))
+ )
 
 (defn- solve-handler [e]
   (dommy/set-text! (dommy/sel1 :#answer) 
