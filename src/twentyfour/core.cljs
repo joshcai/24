@@ -13,11 +13,18 @@
 (defn- generate-permutations [nums]
   (combo/cartesian-product 
     (combo/permutations nums)
-    (combo/selections [+ - * / div sub] (- (count nums) 1)))
+    (combo/selections [
+      {:op + :display \+ :reverse false}
+      {:op - :display \- :reverse false}
+      {:op * :display \* :reverse false}
+      {:op / :display \/ :reverse false}
+      {:op div :display \/ :reverse true}
+      {:op sub :display \- :reverse true}
+    ] (- (count nums) 1)))
 )
 
 (defn- operate [num tup]
-  ((last tup) (first tup) num)
+  (((last tup) :op) (first tup) num)
 )
 (defn- operate-reduce [perm]
   (reduce operate
@@ -40,8 +47,21 @@
   (js/parseInt (dommy/value (dommy/sel1 id)))
  )
 
+(defn- pretty-print [num tup]
+  (if ((last tup) :reverse)
+    (str \( ((last tup) :display) " " num " " (first tup) \))
+    (str \( ((last tup) :display) " "(first tup) " " num \))
+  )
+)
+(defn- pretty-print-reduce [perm]
+  (reduce pretty-print
+    (first (first (seq perm)))
+    (map vector (rest (first (seq perm))) (last (seq perm))))
+)
+
 (defn- solve-handler [e]
   (dommy/set-text! (dommy/sel1 :#answer) 
-    (clojure.string/join "\n" (solve [(get-int :#a) (get-int :#b) (get-int :#c) (get-int :#d)] 24))))
+    (clojure.string/join "\n" 
+      (map pretty-print-reduce (solve [(get-int :#a) (get-int :#b) (get-int :#c) (get-int :#d)] 24)))))
 
 (dommy/listen! (dommy/sel1 :#solve) :click solve-handler)
