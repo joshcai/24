@@ -63,6 +63,10 @@
 (defn- solve-handler [e]
   (dommy/set-text! (dommy/sel1 :#answer) 
     (clojure.string/join "\n" 
-      (map pretty-print-reduce (solve [(get-int :#a) (get-int :#b) (get-int :#c) (get-int :#d)] 24)))))
+      (distinct (map pretty-print-reduce 
+                     (solve [(get-int :#a) 
+                             (get-int :#b) 
+                             (get-int :#c) 
+                             (get-int :#d)] 24))))))
 
 (dommy/listen! (dommy/sel1 :#solve) :click solve-handler)
