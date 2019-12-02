@@ -1,4 +1,4 @@
-name: ClojureScript Build And Deploy
+name: Build and Deploy
 
 on:
   push:	
@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: Build
       run: lein do clean, cljsbuild once min
     - name: Deploy to GitHub Pages
