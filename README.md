@@ -27,3 +27,7 @@ To create a production build run:
 
 And open your browser in `resources/public/index.html`. You will not
 get live reloading, nor a REPL. 
+
+Note: the production build is handled by a GitHub Action and automatically
+deployed to GitHub Pages, so there is no need to run the production build
+normally.
