@@ -4,6 +4,17 @@
         [clojure.string :as str]
         [dommy.core :as dommy]))
 
+;; Set input values first to reduce delay for user.
+(def url-params (new js/URLSearchParams js/window.location.search))
+
+(defn- set-input-values []
+  (dommy/set-value! (dommy/sel1 :#a) (.get url-params "a"))
+  (dommy/set-value! (dommy/sel1 :#b) (.get url-params "b"))
+  (dommy/set-value! (dommy/sel1 :#c) (.get url-params "c"))
+  (dommy/set-value! (dommy/sel1 :#d) (.get url-params "d")))
+
+(set-input-values)
+
 (enable-console-print!)
 
 ;; 24 solving algorithm
@@ -61,23 +72,38 @@
   (js/parseInt (dommy/value (dommy/sel1 id)))
  )
 
+(defn- get-url-int [name]
+  (js/parseInt (.get url-params name)))
+
+(defn- set-url-params []
+  (.set url-params "a" (get-int :#a))
+  (.set url-params "b" (get-int :#b))
+  (.set url-params "c" (get-int :#c))
+  (.set url-params "d" (get-int :#d))
+  (.replaceState js/window.history (js-obj) "" (str "/?" url-params)))
+
+(defn- get-distinct-solutions []
+  (distinct (map pretty-print-reduce
+                 (solve [(get-url-int "a")
+                         (get-url-int "b")
+                         (get-url-int "c")
+                         (get-url-int "d")]
+                        24))))
+
 (defn- solve-handler []
-  (dommy/set-text! (dommy/sel1 :#answer) 
-    (str/join "\n" 
-      (distinct (map pretty-print-reduce 
-                     (solve [(get-int :#a)
-                             (get-int :#b)
-                             (get-int :#c)
-                             (get-int :#d)] 24))))))
+  (set-url-params)
+  (dommy/set-text! (dommy/sel1 :#answer)
+                   (let [solution (get-distinct-solutions)]
+                     (if (empty? solution) 
+                       "No solutions." 
+                       (str/join "\n" solution)))))
 
 (dommy/listen! (dommy/sel1 :#solve) :click solve-handler)
 
-(defn- possible-handler [_]
+(defn- possible-handler []
+  (set-url-params)
   (dommy/set-text! (dommy/sel1 :#answer)
-                   (let [solution (solve [(get-int :#a)
-                                          (get-int :#b)
-                                          (get-int :#c)
-                                          (get-int :#d)] 24)]
+                   (let [solution (get-distinct-solutions)]
                      (if (empty? solution) 
                        "Not possible." 
                        "Possible."))))
