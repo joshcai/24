@@ -80,7 +80,13 @@
   (.set url-params "b" (get-int :#b))
   (.set url-params "c" (get-int :#c))
   (.set url-params "d" (get-int :#d))
-  (.replaceState js/window.history (js-obj) "" (str "/?" url-params)))
+  (.replaceState js/window.history (js-obj) "" 
+                 (str 
+                  ;; Preserve the URL before the query string to ensure
+                  ;; it works when hosted on GitHub Pages as well.
+                  (first (.split js/window.location.href "?")) 
+                  "?"
+                  url-params)))
 
 (defn- get-distinct-solutions []
   (distinct (map pretty-print-reduce
