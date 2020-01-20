@@ -67,10 +67,16 @@
     (map vector (rest (first (seq perm))) (last (seq perm))))
 )
 
+(defn- random-num []
+  (inc (rand-int 12)))
+
 ;; HTML manipulation
 (defn- get-int [id] 
   (js/parseInt (dommy/value (dommy/sel1 id)))
  )
+
+(defn- set-value [id num]
+  (dommy/set-value! (dommy/sel1 id) num))
 
 (defn- get-url-int [name]
   (js/parseInt (.get url-params name)))
@@ -115,3 +121,12 @@
                        "Possible."))))
 
 (dommy/listen! (dommy/sel1 :#possible) :click possible-handler)
+
+(defn- random-handler []
+  (set-value :#a (random-num))
+  (set-value :#b (random-num))
+  (set-value :#c (random-num))
+  (set-value :#d (random-num))
+  (set-url-params))
+
+(dommy/listen! (dommy/sel1 :#random) :click random-handler)
