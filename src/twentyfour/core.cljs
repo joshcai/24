@@ -134,3 +134,10 @@
   (set-url-params))
 
 (dommy/listen! (dommy/sel1 :#random) :click random-handler)
+
+;; Set up handlers to update URL params when any textbox changes.
+(dommy/listen! (dommy/sel1 :#a) :change set-url-params)
+(dommy/listen! (dommy/sel1 :#b) :change set-url-params)
+(dommy/listen! (dommy/sel1 :#c) :change set-url-params)
+(dommy/listen! (dommy/sel1 :#d) :change set-url-params)
+(dommy/listen! (dommy/sel1 :#target) :change set-url-params)
