@@ -11,7 +11,10 @@
   (dommy/set-value! (dommy/sel1 :#a) (.get url-params "a"))
   (dommy/set-value! (dommy/sel1 :#b) (.get url-params "b"))
   (dommy/set-value! (dommy/sel1 :#c) (.get url-params "c"))
-  (dommy/set-value! (dommy/sel1 :#d) (.get url-params "d")))
+  (dommy/set-value! (dommy/sel1 :#d) (.get url-params "d"))
+  (dommy/set-value! 
+   (dommy/sel1 :#target) 
+   (let [target (.get url-params "target")] (if (nil? target) "24" target))))
 
 (set-input-values)
 
@@ -86,6 +89,7 @@
   (.set url-params "b" (get-int :#b))
   (.set url-params "c" (get-int :#c))
   (.set url-params "d" (get-int :#d))
+  (.set url-params "target" (get-int :#target))
   (.replaceState js/window.history (js-obj) "" 
                  (str 
                   ;; Preserve the URL before the query string to ensure
@@ -100,7 +104,7 @@
                          (get-url-int "b")
                          (get-url-int "c")
                          (get-url-int "d")]
-                        24))))
+                        (get-url-int "target")))))
 
 (defn- solve-handler []
   (set-url-params)
