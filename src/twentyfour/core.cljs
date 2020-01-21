@@ -7,14 +7,42 @@
 ;; Set input values first to reduce delay for user.
 (def url-params (new js/URLSearchParams js/window.location.search))
 
+(defn- get-int [id]
+  (js/parseInt (dommy/value (dommy/sel1 id))))
+
+(defn- random-num []
+  (inc (rand-int 12)))
+
+(defn- set-url-params []
+  (.set url-params "a" (get-int :#a))
+  (.set url-params "b" (get-int :#b))
+  (.set url-params "c" (get-int :#c))
+  (.set url-params "d" (get-int :#d))
+  (.set url-params "target" (get-int :#target))
+  ;; Clear the answer field whenever updating URL params.
+  (dommy/set-text! (dommy/sel1 :#answer) "")
+  (.replaceState js/window.history (js-obj) ""
+                 (str
+                  ;; Preserve the URL before the query string to ensure
+                  ;; it works when hosted on GitHub Pages as well.
+                  (first (.split js/window.location.href "?"))
+                  "?"
+                  url-params)))
+
 (defn- set-input-values []
-  (dommy/set-value! (dommy/sel1 :#a) (.get url-params "a"))
-  (dommy/set-value! (dommy/sel1 :#b) (.get url-params "b"))
-  (dommy/set-value! (dommy/sel1 :#c) (.get url-params "c"))
-  (dommy/set-value! (dommy/sel1 :#d) (.get url-params "d"))
+  (let [a (.get url-params "a")
+        b (.get url-params "b")
+        c (.get url-params "c")
+        d (.get url-params "d")
+        all-nil (every? nil? [a b c d])]
+    (dommy/set-value! (dommy/sel1 :#a) (if all-nil (random-num) a))
+    (dommy/set-value! (dommy/sel1 :#b) (if all-nil (random-num) b))
+    (dommy/set-value! (dommy/sel1 :#c) (if all-nil (random-num) c))
+    (dommy/set-value! (dommy/sel1 :#d) (if all-nil (random-num) d)))
   (dommy/set-value! 
    (dommy/sel1 :#target) 
-   (let [target (.get url-params "target")] (if (nil? target) "24" target))))
+   (let [target (.get url-params "target")] (if (nil? target) "24" target)))
+  (set-url-params))
 
 (set-input-values)
 
@@ -70,35 +98,12 @@
     (map vector (rest (first (seq perm))) (last (seq perm))))
 )
 
-(defn- random-num []
-  (inc (rand-int 12)))
-
 ;; HTML manipulation
-(defn- get-int [id] 
-  (js/parseInt (dommy/value (dommy/sel1 id)))
- )
-
 (defn- set-value [id num]
   (dommy/set-value! (dommy/sel1 id) num))
 
 (defn- get-url-int [name]
   (js/parseInt (.get url-params name)))
-
-(defn- set-url-params []
-  (.set url-params "a" (get-int :#a))
-  (.set url-params "b" (get-int :#b))
-  (.set url-params "c" (get-int :#c))
-  (.set url-params "d" (get-int :#d))
-  (.set url-params "target" (get-int :#target))
-  ;; Clear the answer field whenever updating URL params.
-  (dommy/set-text! (dommy/sel1 :#answer) "")
-  (.replaceState js/window.history (js-obj) "" 
-                 (str 
-                  ;; Preserve the URL before the query string to ensure
-                  ;; it works when hosted on GitHub Pages as well.
-                  (first (.split js/window.location.href "?")) 
-                  "?"
-                  url-params)))
 
 (defn- get-distinct-solutions []
   (distinct (map pretty-print-reduce
