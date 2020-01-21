@@ -53,27 +53,37 @@
 
 (defn- div [a b] (/ b a))
 (defn- sub [a b] (- b a))
+;; Permutations are generated in the following form:
+;;   [num1 num2 num3 num4] [op1 op2 op3]
+;; e.g.: 
+;;   [1 2 8 20] [+ - /]
+;; When operated on, it would produce
+;;   (/ 20 (- 8 (+ 2 1)))
 (defn- generate-permutations [nums]
   (combo/cartesian-product 
     (combo/permutations nums)
-    (combo/selections [
-      {:op + :display \+ :reverse false}
-      {:op - :display \- :reverse false}
-      {:op * :display \* :reverse false}
-      {:op / :display \/ :reverse false}
-      {:op div :display \/ :reverse true}
-      {:op sub :display \- :reverse true}
-    ] (- (count nums) 1)))
+    (combo/selections
+     [;; :value indicates PEMDAS order
+      ;; :reversible indicates if it's - or / (useful for PEMDAS notation)
+      {:op + :display \+ :reverse false :reversible false :value 0}
+      {:op - :display \- :reverse false :reversible true :value 0}
+      {:op * :display \* :reverse false :reversible false :value 1}
+      {:op / :display \/ :reverse false :reversible true :value 1}
+      {:op div :display \/ :reverse true :reversible true :value 1}
+      {:op sub :display \- :reverse true :reversible true :value 0}]
+     (- (count nums) 1)))
 )
 
+(defn- reduce24 [reduce-fn perm]
+  (let [[nums ops] (seq perm)]
+    (reduce reduce-fn
+            (first nums)
+            (map vector (rest nums) ops))))
+
 (defn- operate [num tup]
-  (((last tup) :op) (first tup) num)
-)
-(defn- operate-reduce [perm]
-  (reduce operate
-    (first (first (seq perm)))
-    (map vector (rest (first (seq perm))) (last (seq perm))))
-)
+  (let [[num2 op] tup]
+    ((op :op) num2 num)))
+
 
 (defn solve
   "Solves for 24 given a list of numbers in nums."
@@ -81,22 +91,55 @@
   (filter (fn [perm]
     ;; Since ClojureScript does not support ratios, we check that
     ;; the result is within a small epsilon of the target.
-            (< (abs (- target (operate-reduce perm))) 0.00001))
+            (< (abs (- target (reduce24 operate perm))) 0.00001))
           (generate-permutations nums)))
 
-(defn- pretty-print 
-  "Display expressions in human readable form."
+(defn- pretty-print
+  "Display expressions in human readable form (LISP notation)."
   [num tup]
-  (if ((last tup) :reverse)
-    (str \( ((last tup) :display) " " num " " (first tup) \))
-    (str \( ((last tup) :display) " " (first tup) " " num \))
-    )
-  )
-(defn- pretty-print-reduce [perm]
-  (reduce pretty-print
-    (first (first (seq perm)))
-    (map vector (rest (first (seq perm))) (last (seq perm))))
-)
+  (let [[num2 op] tup
+        display (op :display)]
+    (if (op :reverse)
+      (str \( display " " num " " num2 \))
+      (str \( display " " num2 " " num \)))))
+
+(defn- reduce-pretty-print [perm]
+  (reduce24 pretty-print perm))
+
+(defn- standard-print
+  "Display expressions in human readable form (PEMDAS notation)."
+  [state tup]
+  (let [prev-value (state :value)
+        [num2 op] tup
+        curr-value (op :value)
+        display (op :display)
+        s (state :s)
+        reverse (op :reverse)
+        prev-state (if (and
+                        ;; Add parentheses if the current op is reversible
+                        ;; and the previous expression falls on the right
+                        ;; e.g. 5 / (2 / 5)
+                        (or (and (not reverse) (op :reversible))
+                            ;; or if the PEMDAS order is greater now
+                            ;; e.g. 4 * (5 + 2)
+                            (< prev-value curr-value))
+                        ;; Never add parentheses around the starting element
+                        ;; 2 is always the starting value
+                        (not= prev-value 2))
+                        (str \( s \)) s)]
+    (if reverse
+      {:s (str prev-state " " display " " num2) :value curr-value}
+      {:s (str num2 " " display " " prev-state) :value curr-value})))
+
+(defn- reduce-standard-print [perm]
+  (let [[nums ops] (seq perm)]
+    (:s
+     (reduce standard-print
+             ;; Set 2 to the starting value, since it should never
+             ;; have a parentheses around it (and is greater than all
+             ;; other possible values).
+             {:s (str (first nums)) :value 2}
+             (map vector (rest nums) ops)))))
 
 ;; HTML manipulation
 (defn- set-value [id num]
@@ -106,7 +149,8 @@
   (js/parseInt (.get url-params name)))
 
 (defn- get-distinct-solutions []
-  (distinct (map pretty-print-reduce
+  ;; Alternatively, we can use 'reduce-pretty-print' for LISP notation
+  (distinct (map reduce-standard-print
                  (solve [(get-url-int "a")
                          (get-url-int "b")
                          (get-url-int "c")
