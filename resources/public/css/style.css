@@ -42,16 +42,6 @@ input {
     font-family: monospace;
 }
 
-/* Order of button styles must be hover, focus, active.
-   Otherwise, in mobile mode the button will stay highlighted after press. */
-button:hover {
-    color: #353535;
-    background: #F1DABF;
-    border-color: #f6b93b;
-    transition: all 0.25s ease 0s;
-    cursor: pointer;
-}
-
 button, button:focus {
     color: #f1f1f1;
     background: #494949;
@@ -63,6 +53,19 @@ button, button:focus {
     display: inline-block;
     transition: all 0.25s ease 0s;
     outline: none;
+}
+
+button:focus {
+    color: #f1f1f1;
+    background: #707070;
+}
+
+button:hover {
+    color: #353535;
+    background: #F1DABF;
+    border-color: #f6b93b;
+    transition: all 0.25s ease 0s;
+    cursor: pointer;
 }
 
 button:active {
