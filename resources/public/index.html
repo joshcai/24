@@ -6,18 +6,24 @@
     <link href="css/style.css" rel="stylesheet" type="text/css">
   <body>
     <div id="app">
-      <h2><input id="target" type="number"> Calculator</h2>
+      <div id="target-container">
+        <input id="target" type="number">
+      </div>
       <input id="a" type="number">
-      <br>
+      &nbsp;
       <input id="b" type="number">
       <br>
-      <input id="c" type="number">
       <br>
+      <input id="c" type="number">
+      &nbsp;
       <input id="d" type="number">
       <br>
-      <button id="random" type="button">Random</button>
-      <button id="possible" type="button">Possible?</button>
-      <button id="solve" type="button">Solve</button>
+      <br>
+      <div id="buttons">
+        <button id="random" type="button">Random</button>
+        <button id="possible" type="button">Possible?</button>
+        <button id="solve" type="button">Solve</button>
+      </div>
       <pre id="answer"></pre>
     </div>
     <script src="js/compiled/twentyfour.js" type="text/javascript"></script>

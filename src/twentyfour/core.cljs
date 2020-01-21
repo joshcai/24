@@ -90,6 +90,8 @@
   (.set url-params "c" (get-int :#c))
   (.set url-params "d" (get-int :#d))
   (.set url-params "target" (get-int :#target))
+  ;; Clear the answer field whenever updating URL params.
+  (dommy/set-text! (dommy/sel1 :#answer) "")
   (.replaceState js/window.history (js-obj) "" 
                  (str 
                   ;; Preserve the URL before the query string to ensure
