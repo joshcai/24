@@ -31,3 +31,11 @@ get live reloading, nor a REPL.
 Note: the production build is handled by a GitHub Action and automatically
 deployed to GitHub Pages, so there is no need to run the production build
 normally.
+
+For repl.it usage:
+
+If the `Run` button isn't producing an app, try running:
+
+  `busybox restart`
+
+To restart the entire repl.it.

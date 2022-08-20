@@ -54,11 +54,16 @@
 (defn- div [a b] (/ b a))
 (defn- sub [a b] (- b a))
 ;; Permutations are generated in the following form:
-;;   [num1 num2 num3 num4] [op1 op2 op3]
+;;   [num1 num2 num3 num4] [op1 op2 op3] [form]
 ;; e.g.: 
-;;   [1 2 8 20] [+ - /]
+;;   [1 2 8 20] [+ - /] [true]
 ;; When operated on, it would produce
 ;;   (/ 20 (- 8 (+ 2 1)))
+;;
+;; When the form is false, we use the alternative computation:
+;;   [1 2 8 20] [+ - /] [false]
+;; would produce
+;;   (/ (- 20 8) (+ 2 1)))
 (defn- generate-permutations [nums]
   (combo/cartesian-product 
     (combo/permutations nums)
@@ -71,18 +76,36 @@
       {:op / :display \/ :reverse false :reversible true :value 1}
       {:op div :display \/ :reverse true :reversible true :value 1}
       {:op sub :display \- :reverse true :reversible true :value 0}]
-     (- (count nums) 1)))
+     (- (count nums) 1))
+    [true false])
 )
 
 (defn- reduce24 [reduce-fn perm]
-  (let [[nums ops] (seq perm)]
-    (reduce reduce-fn
+  (let [[nums ops form] (seq perm)]
+      (reduce reduce-fn
             (first nums)
-            (map vector (rest nums) ops))))
+            (map vector (rest nums) ops))
+      ))
+
+(defn- alt-op [op num1 num2]
+       ((op :op) num1 num2)
+       )
+
+(defn- solve-alternate [nums ops]
+  (let [[num1 num2 num3 num4] (seq nums)
+      [op1 op2 op3] (seq ops)]
+    (alt-op op3 (alt-op op2 num4 num3) (alt-op op1 num2 num1))
+  ))
 
 (defn- operate [num tup]
   (let [[num2 op] tup]
     ((op :op) num2 num)))
+
+(defn- solve24 [perm]
+  (let [[nums ops form] (seq perm)]
+    (if form 
+      (reduce24 operate perm)
+      (solve-alternate nums ops))))
 
 
 (defn solve
@@ -91,7 +114,7 @@
   (filter (fn [perm]
     ;; Since ClojureScript does not support ratios, we check that
     ;; the result is within a small epsilon of the target.
-            (< (abs (- target (reduce24 operate perm))) 0.00001))
+            (< (abs (- target (solve24 perm))) 0.00001))
           (generate-permutations nums)))
 
 (defn- pretty-print
@@ -103,6 +126,7 @@
       (str \( display " " num " " num2 \))
       (str \( display " " num2 " " num \)))))
 
+;; pretty-print only works for standard form for now
 (defn- reduce-pretty-print [perm]
   (reduce24 pretty-print perm))
 
@@ -132,7 +156,7 @@
       {:s (str num2 " " display " " prev-state) :value curr-value})))
 
 (defn- reduce-standard-print [perm]
-  (let [[nums ops] (seq perm)]
+  (let [[nums ops form] (seq perm)]
     (:s
      (reduce standard-print
              ;; Set 2 to the starting value, since it should never
@@ -140,6 +164,33 @@
              ;; other possible values).
              {:s (str (first nums)) :value 2}
              (map vector (rest nums) ops)))))
+
+(defn- standard-print-op-str [num1 display num2 add-parens]
+       (if add-parens 
+         (str \( num1 " " display " " num2 \))
+         (str num1 " " display " " num2))
+       )
+
+(defn- standard-print-op
+  [op num1 num2 add-parens]
+  (let [display (op :display)]
+    (if (op :reverse)
+      (standard-print-op-str num2 display num1 add-parens)
+      (standard-print-op-str num1 display num2 add-parens))))
+
+;; TODO: fix this to remove unnecessary parentheses
+(defn- standard-print-alternate [nums ops]
+  (let [[num1 num2 num3 num4] (seq nums)
+        [op1 op2 op3] (seq ops)]
+          (str (standard-print-op op3 
+                                  (standard-print-op op2 num4 num3 true)
+                                  (standard-print-op op1 num2 num1 true) false))))
+
+(defn- standard-print-forms [perm]
+  (let [[nums ops form] (seq perm)]
+    (if form
+      (reduce-standard-print perm)
+      (standard-print-alternate nums ops))))
 
 ;; HTML manipulation
 (defn- set-value [id num]
@@ -150,7 +201,7 @@
 
 (defn- get-distinct-solutions []
   ;; Alternatively, we can use 'reduce-pretty-print' for LISP notation
-  (distinct (map reduce-standard-print
+  (distinct (map standard-print-forms
                  (solve [(get-url-int "a")
                          (get-url-int "b")
                          (get-url-int "c")
@@ -192,3 +243,5 @@
 (dommy/listen! (dommy/sel1 :#c) :change set-url-params)
 (dommy/listen! (dommy/sel1 :#d) :change set-url-params)
 (dommy/listen! (dommy/sel1 :#target) :change set-url-params)
+
+;; Can use (.log js/console ...) here to debug expressions
