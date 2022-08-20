@@ -16,10 +16,8 @@ jobs:
     - name: Build
       run: lein do clean, cljsbuild once min
     - name: Deploy to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@releases/v3
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BASE_BRANCH: master # The branch the action should deploy from.
-        BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: resources/public # The folder the action should deploy.
-        CLEAN: true # Cleans deployment branch.
+        branch: gh-pages # The branch the action should deploy to.
+        folder: resources/public # The folder the action should deploy.
+        clean: true # Cleans deployment branch.
